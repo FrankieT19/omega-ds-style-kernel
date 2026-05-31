@@ -1,12 +1,14 @@
 #ifndef _LANG_H
 #define _LANG_H
 
-
 extern char* gl_init_error;
 extern char* gl_power_off;
 extern char* gl_init_ok;
 extern char* gl_Loading;
 extern char* gl_file_overflow;
+
+extern char* gl_theme_credit;
+extern char* gl_theme_credit2;
 
 extern char* gl_menu_btn;
 extern char* gl_lastest_game;
@@ -37,7 +39,11 @@ extern char* gl_zh_lang;
 extern char* gl_set_btn;
 extern char* gl_ok_btn;
 
-extern char* gl_formatnor_info;
+extern char* gl_formatnor_info1;
+extern char* gl_formatnor_info2;
+
+extern char* temp;
+
 
 extern char* gl_check_sav;
 extern char* gl_make_sav;
@@ -66,6 +72,9 @@ extern char* gl_ingameRTC;
 extern char* gl_ingameRTC_open;
 extern char* gl_ingameRTC_close;
 
+extern char* gl_lang_toggle_reset;
+extern char* gl_lang_toggle_backup;
+
 extern char* gl_error_0;
 extern char* gl_error_1;
 extern char* gl_error_2;
@@ -74,8 +83,41 @@ extern char* gl_error_4;
 extern char* gl_error_5;
 extern char* gl_error_6;
 
+extern char* gl_save_sav;
+extern char* gl_save_ing;
+
+extern char* gl_save;
+extern char* gl_auto_save;
+
+extern char* gl_modeB_INITstr;
+extern char* gl_modeB_RUMBLE;
+extern char* gl_modeB_RAM;
+extern char* gl_modeB_LINK;
+
+extern char* gl_led;
+extern char* gl_led_open;
+
+extern char* gl_Breathing_light;
+extern char* gl_SD_working;
+
+extern char* gl_NOR_full;
+extern char* gl_save_loaded;
+extern char* gl_save_saved;
+extern char* gl_file_exist;
+extern char* gl_file_noexist;
+
 extern char**  	gl_rom_menu;
 extern char**   gl_nor_op;
+
+extern char* gl_enabled;
+extern char* gl_disabled;
+
+extern char* gl_copying_data;
+extern char* gl_generating_emu;
+
+// ASCII Font
+extern unsigned char* ASC_DATA;
+extern unsigned short gl_select_lang;
 
 void LoadEnglish(void);
 void LoadChinese(void);

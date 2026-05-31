@@ -21,13 +21,20 @@ u32 gl_cheat_count;
 
 extern u16 gl_select_lang;
 
-u16 gl_color_chtBG    = RGB(4,8,0xC);
+//u16 gl_color_chtBG    = RGB(4,8,0xC);
 //------------------------------------------------------------------
 
 
 extern FIL gfile;
-u8 buf[MAX_BUF_LEN]EWRAM_BSS;
+char buf[MAX_BUF_LEN]EWRAM_BSS;
 char _paramv[MAX_BUF_LEN] EWRAM_BSS;
+extern void Draw_select_icon(u32 X,u32 Y,u32 mode);
+extern void UIAudio_PlayMove(void);
+extern void UIAudio_PlayAcceptExport(void);
+extern void UIAudio_PlayBackExport(void);
+extern void UIAudio_UpdateExport(void);
+extern void UIAudio_WaitForCurrentClipExport(u32 max_frames);
+extern void UIAudio_CutOffTrailingClipExport(void);
 //------------------------------------------------------------------
 //------------------------------------------------------------------
 void Trim(char s[])
@@ -46,7 +53,7 @@ void Get_KEY_val(FIL* file,char*KEY_section,char*KEY_secval,char getbuff[])
 	int text_comment = 0;
 
 	int in_section=0;
-	int keyval_count=0;
+	//int keyval_count=0;
 
 	char section[MAX_KEY_LEN] = {0};
 
@@ -90,7 +97,7 @@ void Get_KEY_val(FIL* file,char*KEY_section,char*KEY_secval,char getbuff[])
 
     int is_section=0;
     int section_len=0;
-    int _val_len=0;
+    //int _val_len=0;
 
     for (i=0; i<buf_len; ++i)
     {
@@ -115,7 +122,7 @@ void Get_KEY_val(FIL* file,char*KEY_section,char*KEY_secval,char getbuff[])
       {
           is_section = 0;
           in_section = 1;
-          _val_len = 0;
+          //_val_len = 0;
           break;
       }
 
@@ -150,7 +157,7 @@ void Get_KEY_val(FIL* file,char*KEY_section,char*KEY_secval,char getbuff[])
 			{
 				strcpy(getbuff,_paramv); 
 
-				return 0;	
+				return ;	
 			}				
 		}
 		if (strcmp(_paramk, "")==0 || strcmp(_paramv, "")==0)
@@ -165,7 +172,7 @@ u32 Get_CHT_val(FIL* file,char*KEY_section,char*KEY_secval/*,char getbuff[]*/)
 	int text_comment = 0;
 
 	int in_section=0;
-	int keyval_count=0;
+	//int keyval_count=0;
 
 	char section[MAX_KEY_LEN] = {0};
 
@@ -210,7 +217,7 @@ u32 Get_CHT_val(FIL* file,char*KEY_section,char*KEY_secval/*,char getbuff[]*/)
 
     int is_section=0;
     int section_len=0;
-    int _val_len=0;
+    //int _val_len=0;
 
     for (i=0; i<buf_len; ++i)
     {
@@ -235,7 +242,7 @@ u32 Get_CHT_val(FIL* file,char*KEY_section,char*KEY_secval/*,char getbuff[]*/)
       {
           is_section = 0;
           in_section = 1;
-          _val_len = 0;
+          //_val_len = 0;
           break;
       }
 
@@ -333,7 +340,7 @@ u32 Get_all_Section_val(FIL* file)
 
 	int in_section=0;
 	//char keyval[10][25];
-	int keyval_count=0;
+	//int keyval_count=0;
 	u32 Line = 0;
 
 
@@ -533,7 +540,7 @@ void Show_KEY_val(u32 total,u32 Select,u32 showoffset)
 	}		
 }
 //------------------------------------------------------------------
-unsigned long str2hex(unsigned char*str)
+unsigned long str2hex( char*str)
 {
 	unsigned long sum=0;
 	unsigned long i;
@@ -560,8 +567,8 @@ void Analyze_KEYVAL(FIL* file,u32 total)
 	//u32 address;
 	u32 address_len;
 	u32 val_len;
-	u8 address_buf[8];
-	u8 val_buf[3];
+	char address_buf[8];
+	char val_buf[3];
 	u32 is_val;
 	u32 is_address;
 	u32 address_add;
@@ -738,10 +745,10 @@ u32 Change2cht_folder(u32 chtname)
 	
 	if(gl_select_lang == 0xE1E1)//english
 	{
-		sprintf(currentpath,"/CHEAT/Eng/%s",folder_name);
+		sprintf(currentpath,"/SYSTEM/CHEAT/Eng/%s",folder_name);
 	}
 	else{		
-		sprintf(currentpath,"/CHEAT/Chn/%s",folder_name);
+		sprintf(currentpath,"/SYSTEM/CHEAT/Chn/%s",folder_name);
 	}
 	res=f_chdir(currentpath);		
 	return res;
@@ -771,7 +778,7 @@ u32 Check_cheat_file(TCHAR *gamefilename)
 	chtnamebuf[len-2] = 'h';
 	chtnamebuf[len-1] = 't';	
 	
-	res=f_chdir("/CHEAT");
+	res=f_chdir("/SYSTEM/CHEAT");
 	if(res != FR_OK){
 		return 0;
 	}
@@ -827,7 +834,7 @@ u32 Check_cheat_file(TCHAR *gamefilename)
 void Show_num(u32 totalcount,u32 select)
 {
 	char msg[20];
-	Clear(186, 3, 7*6, 15, gl_color_chtBG, 1);
+	ClearWithBG((u16*)gImage_SD, 186, 3, 7*6, 15, 1);
 	sprintf(msg,"[%03lu/%03lu]",select,totalcount);
 
 	DrawHZText12(msg,0,182,3, gl_color_text,1);
@@ -839,11 +846,11 @@ void Open_cht_file(TCHAR *gamefilename,u32 havecht)
 	char msg[128];
 	TCHAR chtnamebuf[100];	
 
-	char buffer[128]={0};
+	char buffer[127]={0};
 		
 	if(havecht == 0x0000FFFF)
 	{
-		res=f_chdir("/CHEAT");
+		res=f_chdir("/SYSTEM/CHEAT");
 		if(res != FR_OK){
 			return;
 		}	
@@ -857,15 +864,14 @@ void Open_cht_file(TCHAR *gamefilename,u32 havecht)
 	{
 		Change2cht_folder(havecht);
 		u8* chtmode;
-		chtmode = &havecht;
+		chtmode = (u8*)&havecht;
 		sprintf(chtnamebuf,"%d%d%d%d.cht",HexToChar(chtmode[0]),HexToChar(chtmode[1]),HexToChar(chtmode[2]),HexToChar(chtmode[3]));
 	}	
 	res = f_open(&gfile,chtnamebuf, FA_READ);	
 
 	if(res == FR_OK)//have a cht file
 	{		
-		Clear(0, 0, 240, 160, gl_color_chtBG, 1);
-		Clear(0, 18, 240, 1, gl_color_selected, 1);
+		ClearWithBG((u16*)gImage_SD, 0, 0, 240, 160, 1);
 
 		Get_KEY_val(&gfile,"GameInfo","Name",buffer);
 		sprintf(msg,"%s ",buffer);
@@ -885,11 +891,12 @@ void Open_cht_file(TCHAR *gamefilename,u32 havecht)
 			{
 				VBlankIntrWait();
 				VBlankIntrWait();	
+				UIAudio_UpdateExport();
 				if(re_show)
 				{
 					if(re_show>1)
 					{
-						Clear(0, 19, 240, 160-19, gl_color_chtBG, 1);
+						ClearWithBG((u16*)gImage_SD, 0, 19, 240, 160-19, 1);
 					}
 					Show_KEY_val(all_count,Select,showoffset);
 					Show_num(all_count,Select+showoffset+1);
@@ -901,6 +908,8 @@ void Open_cht_file(TCHAR *gamefilename,u32 havecht)
 				u16 keysrepeat = keysDownRepeat();	
 								
 				if (keysrepeat & KEY_DOWN) {
+					u32 prev_select = Select;
+					u32 prev_showoffset = showoffset;
 					if (Select + showoffset+1 < (all_count )) {
 		        if ( Select > 8 ){
 		          if ( Select == 9 ) {
@@ -926,10 +935,14 @@ void Open_cht_file(TCHAR *gamefilename,u32 havecht)
 		        }
 
 					}
+					if((Select != prev_select) || (showoffset != prev_showoffset))
+						UIAudio_PlayMove();
 					
 				}
 				else if(keysrepeat & KEY_UP)
 				{
+					u32 prev_select = Select;
+					u32 prev_showoffset = showoffset;
 					if (Select ) {
 						Select--;
   					if((showoffset==0)&& (Select==0)){
@@ -965,9 +978,13 @@ void Open_cht_file(TCHAR *gamefilename,u32 havecht)
 							re_show=2;
 						}
 					}
+					if((Select != prev_select) || (showoffset != prev_showoffset))
+						UIAudio_PlayMove();
 				}
 				else if(keysrepeat & KEY_LEFT)
 				{
+			    u32 prev_select = Select;
+			    u32 prev_showoffset = showoffset;
 			    if ( showoffset )
 			    {
 			      if ( showoffset > 9 )
@@ -986,9 +1003,12 @@ void Open_cht_file(TCHAR *gamefilename,u32 havecht)
 			    		re_show=1;
 			   	 	}
 			    }
+			    if((Select != prev_select) || (showoffset != prev_showoffset))
+			    	UIAudio_PlayMove();
 				}
 				else if(keysrepeat & KEY_RIGHT)
 				{
+		      u32 prev_showoffset = showoffset;
 		      if ( showoffset + 10 < all_count )
 		      {
 		        if ( showoffset + 20 <= all_count )
@@ -1001,6 +1021,8 @@ void Open_cht_file(TCHAR *gamefilename,u32 havecht)
 						}
 						re_show=2;
 		      }
+		      if(showoffset != prev_showoffset)
+		      	UIAudio_PlayMove();
 				}
 				else if(keysdown & KEY_A)
 				{
@@ -1019,12 +1041,15 @@ void Open_cht_file(TCHAR *gamefilename,u32 havecht)
 						
 						u8 select	= ((FM_CHT_LINE*)pCHTbuffer)[showoffset+Select].select;
 						((FM_CHT_LINE*)pCHTbuffer)[showoffset+Select].select = !select;
-					
+						UIAudio_PlayAcceptExport();
 						re_show=1;
 					}
 				}
 				else if(keysup & KEY_B)
 				{
+					UIAudio_PlayBackExport();
+					UIAudio_WaitForCurrentClipExport(60);
+					UIAudio_CutOffTrailingClipExport();
 					Analyze_KEYVAL(&gfile,all_count);
 					break;
 				}				

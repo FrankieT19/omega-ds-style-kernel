@@ -4,6 +4,7 @@
 #include <string.h>
 #include <gba_dma.h>
 
+#include "ez_define.h"
 #include "draw.h"
 #include "GBApatch.h"
 #include "gba_nes_patch.h"
@@ -11,8 +12,8 @@
 #include "reset_table.h"
 #include "lang.h"
 #include "showcht.h"
+#include "Ezcard_OP.h"
 
-#define	_UnusedVram 		0x06012c00
 
 
 u32 windows_offset;
@@ -63,24 +64,43 @@ void Write(u32 romaddress, const u8* buffer, u32 size)
 		SetPSRampage(page);
 		
 		for(x=0;x<size/2;x++)
-			((vu16*)(PSRAMBase_S98 + Address))[x] = ((vu16*)buffer)[x];//todo »¹Òª´¦Àípsram page
+			((vu16*)(PSRAMBase_S98 + Address))[x] = ((vu16*)buffer)[x];//todo ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½psram page
 						
 		//DEBUG_printf("address{%x}:%x %x %x %x", romaddress,page,Address,size ,((vu32*)buffer)[0]);
 		SetPSRampage(0);
 	}
 }
 //------------------------------------------------------------------
+void Patch_somegame(u32 *Data)
+{
+	u32 size = 0x7FF0;
+	if( *(u32*)GAMECODE == 0x50424732 )
+	{
+		for(u32 ii=0;ii<0x100;ii++)
+		{
+			if(0x3000000==Data[ii])
+			{
+				if(0x8000 ==Data[ii+1] )
+				{
+					Write((ii+1)*4,(u8*)&size,4 );
+				}
+			}
+		}
+	}
+}
+
+//------------------------------------------------------------------
 bool IWRAM_CODE PatchDragonBallZ(u32 *Data)
 {
   bool res=false;
 	const u32 game_codes_DragonBallZ[]=
 	{
-	  0x45464c42, //2288 - 2 Games in 1 - Dragon Ball Z - The Legacy of Goku I & II (USA).gba
-	  0x50474c41, //0639 - Dragon Ball Z - The Legacy of Goku (Europe) (En,Fr,De,Es,It).gba
-	  0x45474c41, //0434 - Dragon Ball Z - The Legacy of Goku (USA).gba
-	  0x50464c41, //1056 - Dragon Ball Z - The Legacy of Goku II (Europe) (En,Fr,De,Es,It).gba
-	  0x45464c41, //1085 - Dragon Ball Z - The Legacy of Goku II (USA).gba
-	  0x4a464c41,  //1591 - Dragon Ball Z - The Legacy of Goku II International (Japan).gba
+	  0x45464c42, //2 Games in 1 - Dragon Ball Z - The Legacy of Goku I & II (USA).gba
+	  0x50474c41, //Dragon Ball Z - The Legacy of Goku (Europe) (En,Fr,De,Es,It).gba
+	  0x45474c41, //Dragon Ball Z - The Legacy of Goku (USA).gba
+	  0x50464c41, //Dragon Ball Z - The Legacy of Goku II (Europe) (En,Fr,De,Es,It).gba
+	  0x45464c41, //Dragon Ball Z - The Legacy of Goku II (USA).gba
+	  0x4a464c41,  //Dragon Ball Z - The Legacy of Goku II International (Japan).gba
 
 	  0x45593241   //1928 - Top Gun - Combat Zones(US).gba
 	  
@@ -252,14 +272,14 @@ void IWRAM_CODE PatchInternal(u32* Data,int iSize,u32 offset)
     {
       case 0x3007FFC: // IRQ handler
         {
-          Add2(ii, 0x3007FF4);//0x3007FFCµÄÎ»ÖÃ
+          Add2(ii, 0x3007FF4);//0x3007FFCï¿½ï¿½Î»ï¿½ï¿½
         }
         break;
-      case 0x3FFFFFC:
-        {
-          Add2(ii, 0x3007FF4);
-        }
-        break;
+	  case 0x3FFFFFC: // IRQ handler
+	  {
+		  Add2(ii, 0x3007FF4);
+	  }
+	  break;
     }
   }
 }
@@ -390,14 +410,14 @@ void Patch_Reset_Sleep(u32 *Data)
   u32 Return_address_offset = p_patch_Return_address_L-p_patch_start;
 
   dmaCopy((void*)p_patch_start,patchbuffer, p_patch_end-p_patch_start);
-  *(vu32*)(patchbuffer+Return_address_offset) = Return_address;//ÐÞ¸Ägba_sleep_patch_binÀïÃæµÄ·µ»ØµØÖ·
+  *(vu32*)(patchbuffer+Return_address_offset) = Return_address;//ï¿½Þ¸ï¿½gba_sleep_patch_binï¿½ï¿½ï¿½ï¿½Ä·ï¿½ï¿½Øµï¿½Ö·
 
-	u16 read5 = Read_SET_info(5); 
-	u16 read6 = Read_SET_info(6); 
-	u16 read7 = Read_SET_info(7); 
-	u16 read8 = Read_SET_info(8); 
-	u16 read9 = Read_SET_info(9); 
-	u16 read10 = Read_SET_info(10); 
+	u16 read5 = Read_SET_info(assress_edit_sleephotkey_0); 
+	u16 read6 = Read_SET_info(assress_edit_sleephotkey_1); 
+	u16 read7 = Read_SET_info(assress_edit_sleephotkey_2); 
+	u16 read8 = Read_SET_info(assress_edit_rtshotkey_0); 
+	u16 read9 = Read_SET_info(assress_edit_rtshotkey_1); 
+	u16 read10 = Read_SET_info(assress_edit_rtshotkey_2); 
 	u16 sleep_key = ~((1<< read5) | (1<< read6) | (1<< read7));
   u16 reset_key = ~((1<< read8) | (1<< read9) | (1<< read10));	
 
@@ -440,12 +460,12 @@ void Patch_RTS_Cheat(u32 *Data)
   	*(vu32*)(patchbuffer+Return_address_offset+4) = spend_address;
 	}	
 	
-	u16 read5 = Read_SET_info(5); 
-	u16 read6 = Read_SET_info(6); 
-	u16 read7 = Read_SET_info(7); 
-	u16 read8 = Read_SET_info(8); 
-	u16 read9 = Read_SET_info(9); 
-	u16 read10 = Read_SET_info(10); 
+	u16 read5 = Read_SET_info(assress_edit_sleephotkey_0); 
+	u16 read6 = Read_SET_info(assress_edit_sleephotkey_1); 
+	u16 read7 = Read_SET_info(assress_edit_sleephotkey_2); 
+	u16 read8 = Read_SET_info(assress_edit_rtshotkey_0); 
+	u16 read9 = Read_SET_info(assress_edit_rtshotkey_1); 
+	u16 read10 = Read_SET_info(assress_edit_rtshotkey_2); 
 	u16 RTS_sleep_key_val = ~((1<< read5) | (1<< read6) | (1<< read7));
   u16 RTS_reset_key_val = ~((1<< read8) | (1<< read9) | (1<< read10));	
 	 
@@ -516,12 +536,12 @@ void Patch_RTS_only(u32 *Data)
   	*(vu32*)(patchbuffer+Return_address_offset+4) = spend_address;
 	}	
 	
-	u16 read5 = Read_SET_info(5); 
-	u16 read6 = Read_SET_info(6); 
-	u16 read7 = Read_SET_info(7); 
-	u16 read8 = Read_SET_info(8); 
-	u16 read9 = Read_SET_info(9); 
-	u16 read10 = Read_SET_info(10); 
+	u16 read5 = Read_SET_info(assress_edit_sleephotkey_0); 
+	u16 read6 = Read_SET_info(assress_edit_sleephotkey_1); 
+	u16 read7 = Read_SET_info(assress_edit_sleephotkey_2); 
+	u16 read8 = Read_SET_info(assress_edit_rtshotkey_0); 
+	u16 read9 = Read_SET_info(assress_edit_rtshotkey_1); 
+	u16 read10 = Read_SET_info(assress_edit_rtshotkey_2); 
 	u16 RTS_only_SAVE_key_val = ~((1<< read5) | (1<< read6) | (1<< read7));
   u16 RTS_only_LOAD_key_val = ~((1<< read8) | (1<< read9) | (1<< read10));	
 	 
@@ -548,7 +568,7 @@ void GBApatch_Cleanrom(u32* address,int filesize)//Only once
 	CheckNes(address);
 	PatchNes(address);
 	PatchDragonBallZ(address);
-	Check_Fire_Emblem();
+	//Check_Fire_Emblem();
 }
 //------------------------------------------------------------------
 u32 Get_spend_address(u32* Data)
@@ -556,6 +576,7 @@ u32 Get_spend_address(u32* Data)
 	u32 ii;	
 	u32 offset;
 	u32 updown;
+	
   u32 search_size=0x5000/4; 
   for(ii=0;ii<search_size;ii++)
   {
@@ -578,9 +599,11 @@ u32 Get_spend_address(u32* Data)
   
   u32 address;
   if(updown == 0x00900000)
-		address= ii*4 + offset+16;
+		address = ii*4 + offset+16;
 	else if (updown == 0x00100000)
-		address= ii*4 - offset+16;
+		address = ii*4 - offset+16;
+	else
+		address = 0;
   
   if(	(Data[address/4] > 0x03007E80) /*|| (Data[address/4] == 0x03007E00)*/ || (Data[address/4] == 0x0203FFFC) )
   {
@@ -600,7 +623,7 @@ void GBApatch_PSRAM(u32* address,int filesize)//Only once
 	CheckNes(address);
 	PatchNes(address);
 	PatchDragonBallZ(address);
-	Check_Fire_Emblem();
+	//Check_Fire_Emblem();
 	Patch_somegame(address);
 	
 	if( (gl_rts_on==1) && (gl_cheat_on == 0)  && (gl_reset_on == 0)  && (gl_sleep_on == 0)  ) {
@@ -629,7 +652,7 @@ void GBApatch_Cleanrom_NOR(u32* address,u32 offset)
 	}
 	PatchNes(address);
 	PatchDragonBallZ(address);
-	Check_Fire_Emblem();
+	//Check_Fire_Emblem();
 }
 //------------------------------------------------------------------
 void GBApatch_NOR(u32* address,int filesize,u32 offset)
@@ -645,11 +668,12 @@ void GBApatch_NOR(u32* address,int filesize,u32 offset)
 		B_install_handler = 0xEA000000|((iTrimSize-8)/4);
 		Write(0,(u8*)&B_install_handler , 4); //B
 		spend_address = Get_spend_address(address);
+
 		Patch_somegame(address);
   }
 	PatchNes(address);
 	PatchDragonBallZ(address);
-	Check_Fire_Emblem();
+	//Check_Fire_Emblem();
 
 	if( (gl_rts_on==1) && (gl_cheat_on == 0)  && (gl_reset_on == 0)  && (gl_sleep_on == 0)  ) {
 		Patch_RTS_only(address);		
@@ -722,7 +746,7 @@ u32 Check_pat(TCHAR* gamefilename)
 	
 	TCHAR patnamebuf[100];	
 	make_pat_name(patnamebuf,gamefilename);
-	res=f_chdir("/PATCH");
+	res=f_chdir("/SYSTEM/PATCH");
 	if(res == FR_OK)
 	{
 		res = f_open(&gfile,patnamebuf, FA_READ);
@@ -769,8 +793,8 @@ void Make_pat_file(TCHAR* gamefilename)
 	u32 written;
 	u32 w_buffer[16];
 	
-	res = f_mkdir("/PATCH");
-	res=f_chdir("/PATCH");
+	res = f_mkdir("/SYSTEM/PATCH");
+	res=f_chdir("/SYSTEM/PATCH");
 	
 	memset(w_buffer, 0x00, sizeof(w_buffer));
 
@@ -782,7 +806,7 @@ void Make_pat_file(TCHAR* gamefilename)
 		if(res == FR_OK)
 		{	
 			f_lseek(&gfile, 0x0000);
-			res=f_write(&gfile, (void*)iPatchInfo2, sizeof(iPatchInfo2), &written);
+			res=f_write(&gfile, (void*)iPatchInfo2, sizeof(iPatchInfo2), (UINT*)&written);
 			w_buffer[0] = is_NORpatch;
 			w_buffer[1] = windows_offset;
 			w_buffer[2] = is_Nes;
@@ -797,7 +821,7 @@ void Make_pat_file(TCHAR* gamefilename)
 			w_buffer[10] = gl_sleep_on;
 			w_buffer[11] = gl_cheat_on;
 					
-			res=f_write(&gfile, (void*)w_buffer, sizeof(w_buffer), &written);
+			res=f_write(&gfile, (void*)w_buffer, sizeof(w_buffer), (UINT*)&written);
 			f_close(&gfile);
 		}
 	}
@@ -823,7 +847,7 @@ u8 Check_mde_file(TCHAR* gamefilename)
 	TCHAR mdenamebuf[100];	
 	make_mde_name(mdenamebuf,gamefilename);
 	
-	res=f_chdir("/SAVER");
+	res=f_chdir("/SYSTEM/SAVER");
 	if(res == FR_OK)
 	{
 		res = f_open(&gfile,mdenamebuf, FA_OPEN_EXISTING);
@@ -857,7 +881,7 @@ u8 Check_mde_file(TCHAR* gamefilename)
 	}	
 }
 //------------------------------------------------------------------
-void Make_mde_file(TCHAR* gamefilename,u8 Save_num)
+u8 Make_mde_file(TCHAR* gamefilename,u8 Save_num)
 {
 	u32 res;
 	u32 written;
@@ -867,8 +891,11 @@ void Make_mde_file(TCHAR* gamefilename,u8 Save_num)
 	memset(currentpath,00,256);
 	res = f_getcwd(currentpath, sizeof currentpath / sizeof *currentpath);
 	
-	res = f_mkdir("/SAVER");
-	res=f_chdir("/SAVER");
+	//res = f_mkdir(SAVER_FOLDER);
+	res=f_chdir(SAVER_FOLDER);
+	if(res != FR_OK){
+			return 2;
+	}
 	
 	memset(w_buffer, 0x00, sizeof(w_buffer));
 
@@ -882,18 +909,19 @@ void Make_mde_file(TCHAR* gamefilename,u8 Save_num)
 			f_lseek(&gfile, 0x0000);
 			
 			w_buffer[0] = Save_num;
-			res=f_write(&gfile, (void*)w_buffer, sizeof(w_buffer), &written);
+			res=f_write(&gfile, (void*)w_buffer, sizeof(w_buffer), (UINT*)&written);
 
 			f_close(&gfile);
 		}
 	}
 	res=f_chdir(currentpath);
+	return res;
 }
 //------------------------------------------------------------------
 u32 Check_RTS(TCHAR* gamefilename)
 {
-	UINT  ret;
-	u32 find_the_patfile;
+	//UINT  ret;
+	//u32 find_the_patfile;
 	u32 rtsfilesize;
 	u32 res;
 	
@@ -904,8 +932,8 @@ u32 Check_RTS(TCHAR* gamefilename)
 	rtsnamebuf[len-2] = 't';
 	rtsnamebuf[len-1] = 's';	
 	
-	res = f_mkdir("/RTS");
-	res=f_chdir("/RTS");
+	res = f_mkdir("/SYSTEM/RTS");
+	res=f_chdir("/SYSTEM/RTS");
 	if(res != FR_OK){
 		return 0;
 	}
@@ -928,7 +956,7 @@ u32 Check_RTS(TCHAR* gamefilename)
 			memset(pReadCache,0xFF,0x200*4);
 			for(i=0;i<(0x70000)/0x800 ;i++)
 			{
-	      f_write(&gfile, pReadCache, 0x200*4, &written);
+	      f_write(&gfile, pReadCache, 0x200*4, (UINT*)&written);
 	      if(written != 0x200*4) break;
 	    }
 	    f_close(&gfile);
@@ -941,7 +969,7 @@ u32 Check_RTS(TCHAR* gamefilename)
 	LoadRTSfile(rtsnamebuf);
 	if(rtsfilesize)
 	{
-		res = Check_game_save_FAT(rtsnamebuf,3);//rts FAT
+		res = Check_game_RTS_FAT(rtsnamebuf,3);//rts FAT
 		if(res == 0xffffffff){
 			rtsfilesize = 0;
 		}														
@@ -964,14 +992,14 @@ u32 use_internal_engine(u8 gamecode[])
 		count0x3007FFC = ((vu32*)pReadCache)[i+1];				
 
 		if( ((vu32*)pReadCache)[i] == *(vu32*)gamecode )
-		{
-			result =1;					
+		{				
+			result = 1;
 			break;
 		}
 		i += (count0x3007FFC+1);
 	}	
-	if(result==0)	return 0;
-			
+	if(result == 0) return 0;
+		
 	#ifdef DEBUG
 		//DEBUG_printf("%d: %X VS %X %x",i,((vu32*)pReadCache)[i],*(vu32*)gamecode,count0x3007FFC);
 		//wait_btn();	
@@ -1197,7 +1225,7 @@ void Patch_SpecialROM_TrimSize(void)
 	}
 }
 //------------------------------------------------------------------
-void Check_Fire_Emblem(void)
+/*void Check_Fire_Emblem(void)
 {
 	u32 code1 = 0x47004800;
 	u32 address1[5];
@@ -1407,21 +1435,4 @@ void Check_Fire_Emblem(void)
 		Set_AUTO_save(0x01);
 	}	
 }
-//------------------------------------------------------------------
-void Patch_somegame(u32 *Data)
-{
-	u32 size = 0x7FF0;
-	if( *(u32*)GAMECODE == 0x50424732 )
-	{
-  	for(u32 ii=0;ii<0x100;ii++)
-  	{
-   	 if(0x3000000==Data[ii])
-    	{
-    		if(0x8000 ==Data[ii+1] )
-    		{
-    			Write((ii+1)*4,(u8*)&size,4 );
-    		}
-    	}
-		}
-	}
-}
+*/

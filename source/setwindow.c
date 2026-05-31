@@ -3,19 +3,26 @@
 #include <stdlib.h>
 #include <gba_base.h>
 #include <gba_input.h>
+#include <string.h>
+#include <gba_dma.h>
 
-
+#include "ez_define.h"
 #include "lang.h"
 #include "ezkernel.h"
 #include "RTC.h"
 #include "draw.h"
 #include "Ezcard_OP.h"
 
-extern const unsigned char __attribute__((aligned(4)))gImage_SET[76800];
+//extern const unsigned char __attribute__((aligned(4)))gImage_SET[76800];
 extern u16 gl_select_lang;
 extern u16 gl_engine_sel;
 extern u16 gl_show_Thumbnail;
 extern u16 gl_ingame_RTC_open_status;
+extern void UIAudio_HandleKeys(u16 keysdown, u16 keysrepeat);
+
+extern void CheckSwitch(void);
+extern void CheckLanguage(void);
+void save_setw_info(void);
 
 u16 SET_info_buffer [0x200]EWRAM_BSS;
 
@@ -32,12 +39,12 @@ u16 SET_info_buffer [0x200]EWRAM_BSS;
 
 u8* str_A      = (u8*)"   A  ";
 u8*	str_B		   = (u8*)"   B  ";
-u8* str_SELECT = (u8*)"SELECT";
-u8*	str_START	 = (u8*)"START ";
-u8*	str_RIGHT	 = (u8*)"RIGHT ";
-u8*	str_LEFT	 = (u8*)" LEFT ";
-u8* str_UP		 = (u8*)"  UP  ";
-u8*	str_DOWN	 = (u8*)" DOWN ";
+u8* str_SELECT = (u8*)"Select";
+u8*	str_START	 = (u8*)"Start ";
+u8*	str_RIGHT	 = (u8*)"Right ";
+u8*	str_LEFT	 = (u8*)" Left ";
+u8* str_UP		 = (u8*)"  Up  ";
+u8*	str_DOWN	 = (u8*)" Down ";
 u8* str_R		   = (u8*)"   R  ";
 u8* str_L		   = (u8*)"   L  ";
 
@@ -50,15 +57,7 @@ u16 language_sel;
 u16 engine_sel;
 u8 edit_sleephotkey[3]={0};
 u8 edit_rtshotkey[3]={0};
-//---------------------------------------------------------------------------------
-void Show_ver(void)
-{
-	char msg[20];
-	char *ver="K:1.10";
-	u16 FPGAver = Read_FPGA_ver();
-	sprintf(msg,"FW:%d %s",FPGAver&0xFF,ver);
-	DrawHZText12(msg,0,160,3, gl_color_text,1);	
-}
+
 //---------------------------------------------------------------------------------
 void Draw_select_icon(u32 X,u32 Y,u32 mode)
 {
@@ -103,7 +102,7 @@ u32 Setting_window(void)
 	u8 *str1;
 	u8 *str2;
 	
-	Show_ver();
+	
 	select = 0;
 	u32 y_offset = 24;
 	u32 set_offset = 1;
@@ -119,10 +118,10 @@ u32 Setting_window(void)
 	{
 		language_sel = 1;
 	}	
-	v_reset = Read_SET_info(1);
-	v_rts = 	Read_SET_info(2);
-	v_sleep = Read_SET_info(3);
-	v_cheat = Read_SET_info(4);
+	v_reset = Read_SET_info(assress_v_reset);
+	v_rts = 	Read_SET_info(assress_v_rts);
+	v_sleep = Read_SET_info(assress_v_sleep);
+	v_cheat = Read_SET_info(assress_v_cheat);
 	if( (v_reset != 0x0) && (v_reset != 0x1))
 	{
 		v_reset = 0x0;
@@ -196,10 +195,10 @@ u32 Setting_window(void)
 			ClearWithBG((u16*)gImage_SET,set_offset, y_offset+line_x*5, 9*6, 13, 1);
 			ClearWithBG((u16*)gImage_SET,set_offset, y_offset+line_x*6, 9*6, 13, 1);
 			if( (v_rts==1) && (v_cheat == 0)  && (v_reset == 0)  && (v_sleep == 0)  ) {
-				sprintf(msg,"%s"," SAVE KEY");					
+				sprintf(msg,"%s"," Save Key");
 				DrawHZText12(msg,0,set_offset,y_offset+line_x*5,gl_color_selected,1);	
 				
-				sprintf(msg,"%s"," LOAD KEY");
+				sprintf(msg,"%s"," Load Key");
 				DrawHZText12(msg,0,set_offset,y_offset+line_x*6,gl_color_selected,1);	
 			}
 			else{						
@@ -217,10 +216,10 @@ u32 Setting_window(void)
 				//sprintf(msg,"%s",gl_offRTC_powersave);
 				ClearWithBG((u16*)gImage_SET,x_offset+15, y_offset+line_x*7, 6*6, 13, 1);
 				if(gl_ingame_RTC_open_status){
-					sprintf(msg,"%s",gl_ingameRTC_open);
+					sprintf(msg,"%s",gl_enabled);
 				}
 				else {
-					sprintf(msg,"%s",gl_ingameRTC_close);
+					sprintf(msg,"%s",gl_disabled);
 				}			
 				DrawHZText12(msg,0,x_offset+15,y_offset+line_x*7,(RTC_pos==0)?gl_color_selected:gl_color_text,1);	
 	
@@ -295,14 +294,19 @@ u32 Setting_window(void)
 				if(HH >23)HH=0;
 				if(MM >59)MM=0;
 				if(SS >59)SS=0;
-				sprintf(msg,"%u/%02u/%02u %02d:%02d:%02d %s",UNBCD(datetime[0])+2000,UNBCD(datetime[1]&0x1F),UNBCD(datetime[2]&0x3F),HH,MM,SS, wkday);
+				u8 month = UNBCD(datetime[1]&0x1F);
+				u8 day = UNBCD(datetime[2]&0x3F);	
+				if(month ==0)month=1;
+				if(day ==0)day=1;
+					
+				sprintf(msg,"%u/%02u/%02u %02d:%02d:%02d %s",UNBCD(datetime[0])+2000,month,day,HH,MM,SS, wkday);
 				ClearWithBG((u16*)gImage_SET,x_offset, y_offset, 22*6, 13, 1);	
 				DrawHZText12(msg,0,x_offset,y_offset,gl_color_text,1);	
 				VBlankIntrWait();
 
-				u16 read5 = Read_SET_info(5); 
-				u16 read6 = Read_SET_info(6); 
-				u16 read7 = Read_SET_info(7); 
+				u16 read5 = Read_SET_info(assress_edit_sleephotkey_0); 
+				u16 read6 = Read_SET_info(assress_edit_sleephotkey_1); 
+				u16 read7 = Read_SET_info(assress_edit_sleephotkey_2); 
 				switch(read5)
 				{
 					case 0:str0 = str_A;break;
@@ -347,9 +351,9 @@ u32 Setting_window(void)
 				}	
 				sprintf(msg,"%s %s  %s",str0,str1,str2);//read from flash
 				DrawHZText12(msg,0,x_offset+10,y_offset+line_x*5,gl_color_text,1);
-				u16 read8 = Read_SET_info(8); 
-				u16 read9 = Read_SET_info(9); 
-				u16 read10 = Read_SET_info(10); 
+				u16 read8 = Read_SET_info(assress_edit_rtshotkey_0); 
+				u16 read9 = Read_SET_info(assress_edit_rtshotkey_1); 
+				u16 read10 = Read_SET_info(assress_edit_rtshotkey_2); 
 				switch(read8)
 				{
 					case 0:str0 = str_A;break;
@@ -398,6 +402,9 @@ u32 Setting_window(void)
 				re_show = 0;		
 				scanKeys();
 				keys = keysDown();
+				{
+					u32 old_select = select;
+					UIAudio_HandleKeys(keys & ~(KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT | KEY_START | KEY_SELECT), 0);
 				if (keys & KEY_A) {//set
 					Set_OK_line = select;
 					Set_OK = 1;//!Set_OK;
@@ -406,8 +413,8 @@ u32 Setting_window(void)
 					edit_datetime[_HOUR] 	= HH;//UNBCD(datetime[_HOUR]&0x3F);
 					edit_datetime[_MIN]		= MM;//UNBCD(datetime[_MIN]&0x7F);
 					edit_datetime[_SEC] 	= SS;//UNBCD(datetime[_SEC]&0x7F);
-					edit_datetime[_DAY] 	= UNBCD(datetime[_DAY]&0x3F);
-					edit_datetime[_MONTH] = UNBCD(datetime[_MONTH]&0x1F);
+					edit_datetime[_DAY] 	= day;//UNBCD(datetime[_DAY]&0x3F);
+					edit_datetime[_MONTH] = month;//UNBCD(datetime[_MONTH]&0x1F);
 					edit_datetime[_YEAR] 	= UNBCD(datetime[_YEAR]);
 					edit_datetime[_WKD] 	= UNBCD(datetime[_WKD]&0x7);	
 					
@@ -448,8 +455,13 @@ u32 Setting_window(void)
 				}
 				else if(keys & KEY_R) {
 					return 1;
-				}			
-				
+				}
+
+					if((keys & (KEY_UP | KEY_DOWN)) && (select != old_select))
+					{
+						UIAudio_HandleKeys(0, KEY_DOWN);
+					}
+				}
 				break	;
 			case 1: //edit state	
 				//if(Set_OK_line==0) {														
@@ -528,7 +540,8 @@ u32 Setting_window(void)
 								case 6:str0 = str_UP;break;	
 								case 7:str0 = str_DOWN;break;
 								case 8:str0 = str_R;break;
-								case 9:str0 = str_L;break;									
+								case 9:str0 = str_L;break;
+								default:str0= str_L;break;						
 							}	
 							switch(edit_sleephotkey[1])
 							{
@@ -541,7 +554,8 @@ u32 Setting_window(void)
 								case 6:str1 = str_UP;break;	
 								case 7:str1 = str_DOWN;break;
 								case 8:str1 = str_R;break;
-								case 9:str1 = str_L;break;									
+								case 9:str1 = str_L;break;
+								default:str1= str_R;break;										
 							}	
 							switch(edit_sleephotkey[2])
 							{
@@ -554,7 +568,8 @@ u32 Setting_window(void)
 								case 6:str2 = str_UP;break;	
 								case 7:str2 = str_DOWN;break;
 								case 8:str2 = str_R;break;
-								case 9:str2 = str_L;break;									
+								case 9:str2 = str_L;break;	
+								default:str2= str_SELECT;break;							
 							}	
 							sprintf(msg,"%s %s  %s",str0,str1,str2);
 							DrawHZText12(msg,0,x_offset+10,y_offset+line_x*5,gl_color_text,1);
@@ -586,7 +601,8 @@ u32 Setting_window(void)
 								case 6:str0 = str_UP;break;	
 								case 7:str0 = str_DOWN;break;
 								case 8:str0 = str_R;break;
-								case 9:str0 = str_L;break;									
+								case 9:str0 = str_L;break;
+								default:str0= str_L;break;										
 							}	
 							switch(edit_rtshotkey[1])
 							{
@@ -599,7 +615,8 @@ u32 Setting_window(void)
 								case 6:str1 = str_UP;break;	
 								case 7:str1 = str_DOWN;break;
 								case 8:str1 = str_R;break;
-								case 9:str1 = str_L;break;									
+								case 9:str1 = str_L;break;
+								default:str1= str_R;break;												
 							}	
 							switch(edit_rtshotkey[2])
 							{
@@ -612,7 +629,8 @@ u32 Setting_window(void)
 								case 6:str2 = str_UP;break;	
 								case 7:str2 = str_DOWN;break;
 								case 8:str2 = str_R;break;
-								case 9:str2 = str_L;break;									
+								case 9:str2 = str_L;break;
+								default:str2= str_START;break;										
 							}	
 							sprintf(msg,"%s %s  %s",str0,str1,str2);
 							DrawHZText12(msg,0,x_offset+10,y_offset+line_x*6,gl_color_text,1);
@@ -624,6 +642,31 @@ u32 Setting_window(void)
 					scanKeys();
 					keys = keysDown();
 					u16 keysrepeat = keysDownRepeat();
+					{
+						u8 old_edit_pos = edit_pos;
+						u32 old_addon_sel = addon_sel;
+						u8 old_sleep_pos = sleep_pos;
+						u8 old_rtshotkey_pos = rtshotkey_pos;
+						u8 old_engine_pos = engine_pos;
+						u8 old_RTC_pos = RTC_pos;
+										u32 nav_changed = 0;
+						int nav_input = 0;
+						u32 defer_accept_sfx = 0;
+
+						if(keys & KEY_A)
+						{
+							if(((0== select) && (edit_pos==7)) ||
+							   ((select == 1) && (addon_sel == 2)) ||
+							   (select == 2) ||
+							   ((select == 3) && (engine_pos == 1)) ||
+							   ((select == 4) && (sleep_pos == 3)) ||
+							   ((select == 5) && (rtshotkey_pos == 3)) ||
+							   ((select == 6) && (RTC_pos == 1)))
+							{
+								defer_accept_sfx = 1;
+							}
+						}
+									UIAudio_HandleKeys((keys & ~(KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT | KEY_START | KEY_SELECT)) & ~((defer_accept_sfx) ? KEY_A : 0), 0);
 					if(keysrepeat & KEY_UP) {
 						if(select ==0){
 							switch(edit_pos) {
@@ -1059,7 +1102,8 @@ u32 Setting_window(void)
 								RTC_pos = 1;
 						}
 						re_show = 1;	
-					} else if(keys & KEY_LEFT) {
+					}
+					else if(keys & KEY_LEFT) {
 						if(select ==0){
 							if(edit_pos==0) {
 								edit_pos=7;
@@ -1107,6 +1151,7 @@ u32 Setting_window(void)
 							rtc_set(edit_datetime);
 							rtc_disenable();
 							delay(0x200);
+								UIAudio_HandleKeys(KEY_A, 0);
 							Set_OK = 0;//!Set_OK;
 						}
 						else if(select == 1) 
@@ -1119,8 +1164,9 @@ u32 Setting_window(void)
 								case 4:v_cheat = !v_cheat;break;	
 								case 2:
 									{
-										save_set_info();
+										save_setw_info();
 										CheckSwitch(); //read again  
+										UIAudio_HandleKeys(KEY_A, 0);
 										Set_OK = 0;	
 										break;							
 									}
@@ -1128,9 +1174,10 @@ u32 Setting_window(void)
 						}
 						else if(select == 2) 
 						{
-							save_set_info();
+							save_setw_info();
 							CheckLanguage(); //read again    	
 							ClearWithBG((u16*)gImage_SET,0, 20, 240, 160-20, 1);
+								UIAudio_HandleKeys(KEY_A, 0);
 							Set_OK = 0;													
 						}
 						else if(select == 3) 
@@ -1140,9 +1187,10 @@ u32 Setting_window(void)
 								case 0:engine_sel = !engine_sel;break;
 								case 1:
 									{
-										save_set_info();
+										save_setw_info();
+										UIAudio_HandleKeys(KEY_A, 0);
 										Set_OK = 0;	
-										gl_engine_sel = Read_SET_info(11);
+										gl_engine_sel = Read_SET_info(assress_engine_sel);
 										if( (gl_engine_sel != 0x0) && (gl_engine_sel != 0x1))
 										{
 											gl_engine_sel = 0x1;
@@ -1153,12 +1201,14 @@ u32 Setting_window(void)
 						}
 						else if((select == 4)  && (sleep_pos==3))
 						{
-							save_set_info();
+							save_setw_info();
+							UIAudio_HandleKeys(KEY_A, 0);
 							Set_OK = 0;
 						}			
 						else if((select == 5)  && (rtshotkey_pos==3))
 						{
-							save_set_info();
+							save_setw_info();
+							UIAudio_HandleKeys(KEY_A, 0);
 							Set_OK = 0;	
 						}			
 						else if(select == 6) 
@@ -1168,9 +1218,10 @@ u32 Setting_window(void)
 								case 0:gl_ingame_RTC_open_status = !gl_ingame_RTC_open_status;break;
 								case 1:
 									{
-										save_set_info();
+										save_setw_info();
+										UIAudio_HandleKeys(KEY_A, 0);
 										Set_OK = 0;	
-										gl_ingame_RTC_open_status = Read_SET_info(13);
+										gl_ingame_RTC_open_status = Read_SET_info(assress_ingame_RTC_open_status);
 										if( (gl_ingame_RTC_open_status != 0x0) && (gl_ingame_RTC_open_status != 0x1))
 										{
 											gl_ingame_RTC_open_status = 0x1;
@@ -1181,37 +1232,50 @@ u32 Setting_window(void)
 						}			
 						re_show = 1;
 					}
+
+						nav_input = ((keysrepeat & (KEY_UP | KEY_DOWN)) || (keys & (KEY_LEFT | KEY_RIGHT)));
+						nav_changed = (old_edit_pos != edit_pos) || (old_addon_sel != addon_sel) || (old_sleep_pos != sleep_pos) || (old_rtshotkey_pos != rtshotkey_pos) || (old_engine_pos != engine_pos) || (old_RTC_pos != RTC_pos);
+						if(nav_input && nav_changed)
+						{
+							UIAudio_HandleKeys(0, KEY_DOWN);
+						}
+					}
 				break	;			
 		}//end switch 		
 	}//end while(1)
 }
 //---------------------------------------------------------------------------------
-void save_set_info(void)
+void save_setw_info(void)
 {
+	u32 address;	
 	if(language_sel == 0x0){//english						
-		SET_info_buffer[0] = 0xE1E1;
+		SET_info_buffer[assress_language] = 0xE1E1;
 	}
 	else{					
-		SET_info_buffer[0] = 0xE2E2;
+		SET_info_buffer[assress_language] = 0xE2E2;
 	}
-	SET_info_buffer[1] = v_reset;
-	SET_info_buffer[2] = v_rts;
-	SET_info_buffer[3] = v_sleep;
-	SET_info_buffer[4] = v_cheat;	
+	SET_info_buffer[assress_v_reset] = v_reset;
+	SET_info_buffer[assress_v_rts] = v_rts;
+	SET_info_buffer[assress_v_sleep] = v_sleep;
+	SET_info_buffer[assress_v_cheat] = v_cheat;	
 	
-	SET_info_buffer[5] = edit_sleephotkey[0];
-	SET_info_buffer[6] = edit_sleephotkey[1];	
-	SET_info_buffer[7] = edit_sleephotkey[2];	
-	SET_info_buffer[8] = edit_rtshotkey[0];
-	SET_info_buffer[9] = edit_rtshotkey[1];	
-	SET_info_buffer[10] = edit_rtshotkey[2];	
+	SET_info_buffer[assress_edit_sleephotkey_0] = edit_sleephotkey[0];
+	SET_info_buffer[assress_edit_sleephotkey_1] = edit_sleephotkey[1];	
+	SET_info_buffer[assress_edit_sleephotkey_2] = edit_sleephotkey[2];	
+	SET_info_buffer[assress_edit_rtshotkey_0] = edit_rtshotkey[0];
+	SET_info_buffer[assress_edit_rtshotkey_1] = edit_rtshotkey[1];	
+	SET_info_buffer[assress_edit_rtshotkey_2] = edit_rtshotkey[2];	
 	
-	SET_info_buffer[11] = engine_sel;	
+	SET_info_buffer[assress_engine_sel] = engine_sel;	
 	
-	SET_info_buffer[12] = gl_show_Thumbnail;	
+	SET_info_buffer[assress_show_Thumbnail] = gl_show_Thumbnail;	
 	
-	SET_info_buffer[13] = gl_ingame_RTC_open_status;
-						
+	SET_info_buffer[assress_ingame_RTC_open_status] = gl_ingame_RTC_open_status;
+
+	for(address=14;address < assress_max;address++)
+	{
+		SET_info_buffer[address] = Read_SET_info(address);
+	}				
 	//save to nor 
 	Save_SET_info(SET_info_buffer,0x200);
 }

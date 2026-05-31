@@ -65,10 +65,14 @@ u32  Check_pat(TCHAR* gamefilename);
 void Make_pat_file(char* filename);
 u32 Check_RTS(TCHAR* gamefilename);
 u8 Check_mde_file(TCHAR* gamefilename);
-void Make_mde_file(TCHAR* gamefilename,u8 Save_num);
+u8 Make_mde_file(TCHAR* gamefilename,u8 Save_num);
 
 void Patch_SpecialROM_sheepmode(void);
 u32 use_internal_engine(u8 gamecode[]);
 u32 Check_cheat_file(TCHAR *gamefilename);
 void SetTrimSize(u8* buffer,u32 romsize,u32 iSize,u32 mode,BYTE saveMODE);
 u32 Find_spend_address_SpecialROM(u32* Data);
+void Patch_SpecialROM_TrimSize(void);
+u32 Check_game_RTS_FAT(TCHAR *filename,u32 game_save_rts);
+void IWRAM_CODE PatchInternal(u32* Data,int iSize,u32 offset);
+void Patch_SpecialROM_sleepmode(void);

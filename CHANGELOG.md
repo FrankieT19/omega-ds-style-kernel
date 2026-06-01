@@ -1,5 +1,12 @@
 # Changelog
 
+## DS Style v6.5
+
+- Added an Off option for the Start screen source, allowing startup to go straight to the SD browser.
+- Prevented B from returning to the Start screen when the Start screen is disabled.
+- Updated game launch menus to use held-button scrolling without wrapping at the top or bottom.
+- Kept shared DS Style behaviour aligned with the OMEGA Definitive Edition source where applicable.
+
 ## DS Style v6.4
 
 - Ported DS Style v6.4 to the original EZ-FLASH OMEGA.

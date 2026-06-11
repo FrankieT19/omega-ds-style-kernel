@@ -1437,8 +1437,8 @@ static u32 Launcher_GetVirtualFileInfo(const TCHAR *path, const TCHAR *name, u32
 u32 Stage_kernel_update(const TCHAR *src_name)
 {
     TCHAR src_path[MAX_path_len];
-    const TCHAR *tmp_path = "/ezkernelnew.tmp";
-    const TCHAR *dst_path = "/ezkernelnew.bin";
+    const TCHAR *tmp_path = "/ezkernel.tmp";
+    const TCHAR *dst_path = "/ezkernel.bin";
     u32 src_size = 0;
     u32 tmp_size = 0;
 

@@ -1,6 +1,6 @@
 # Changelog
 
-This changelog records the complete DS Style project history. Some early releases or development notes apply specifically to the original Omega or Omega Definitive Edition, as stated.
+This changelog records the DS Style releases made available for the original EZ-Flash Omega.
 
 ## DS Style v6.9
 
@@ -48,33 +48,6 @@ This changelog records the complete DS Style project history. Some early release
 
 > **Original Omega development resumed.**
 
-## DS Style v6.3
-
-- Improved the interface on the SD and NOR screens.
-
-## DS Style v6.2
-
-- Added animation to the Start screen.
-
-## DS Style v6.1
-
-- Refined the sound system.
-- Added the option to toggle interface sounds.
-- Optimised menu behaviour.
-
-## DS Style v6.0
-
-- Completely rebuilt the menu system around a Nintendo DS-inspired interface.
-- Added a new Start screen with Last Played and Favourites.
-- Added a quick-start hotkey for launching a game immediately during startup.
-- Added an 80 x 80 box-art thumbnail option.
-- Moved theme and colour selection into the Settings menu.
-- Added all Nintendo DS operating-system colour choices.
-- Made dark mode compatible with every colour option.
-- Added username support.
-
-> **Original Omega development paused after the v5 releases.**
-
 ## DS Style v5.4
 
 - Fixed crashes affecting certain original Omega cartridges.
@@ -109,16 +82,6 @@ This changelog records the complete DS Style project history. Some early release
 - Included general interface improvements and bug fixes.
 
 > **Original Omega development resumed.**
-
-## DS Style v4.0
-
-- Added a new thumbnail viewer using game-title artwork.
-- Updated the Yoshi theme.
-- Added the Yoshi theme to the original Omega v3.3 build.
-
-> The legacy Yoshi theme is not currently supported by DS Style v6.
-
-> **Original Omega development paused after v3.3.**
 
 ## DS Style v3.3
 
@@ -157,7 +120,3 @@ This changelog records the complete DS Style project history. Some early release
 ## DS Style v1.1
 
 - Added support for the original EZ-Flash Omega.
-
-## DS Style v1.0
-
-- Initial release.

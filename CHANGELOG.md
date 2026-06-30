@@ -9,6 +9,9 @@ This changelog records the DS Style releases made available for the original EZ-
 - Refined list-view scrolling, redraw behaviour, and navigation consistency across launcher menus.
 - Refined the sound system for safer, more reliable audio playback during menu navigation.
 - Fixed themes being installed with the Omega Definitive Edition kernel filename.
+- Added a Hide system files setting for keeping kernel, system, and metadata files out of the root file browser.
+- Added artwork matching for `.sav` files when a matching ROM is present.
+- Replaced the old `/THEMES` browser flow with a Settings > Load style option using `.bin` files in `SYSTEM/KERNELS`.
 
 ## DS Style v6.8
 

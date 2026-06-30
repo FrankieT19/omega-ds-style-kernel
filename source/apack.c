@@ -28,7 +28,8 @@ static inline void ap_getgamma()
 static inline void copyloop()
 {
 	do {
-		*dest++ = dest[-recentoff];
+		*dest = dest[-recentoff];
+		dest++;
 	} while (--gamma);
 }
 
@@ -45,11 +46,12 @@ static inline void ap_is_lwm()
 	copyloop();
 }
 
-int aP_depack(const char const *source, char *destination)
+int aP_depack(const char *source, char *destination)
 {
 	int done = 0;
 	src = source;
 	dest = destination;
+	destorg = destination;
 	*dest++ = *src++;
 	mask = 0x01;
 	lwm = 0;
@@ -80,10 +82,13 @@ int aP_depack(const char const *source, char *destination)
 					done = 1;
 				} else {
 					if (gamma&1) {
-						*dest++ = dest[-recentoff];
+						*dest = dest[-recentoff];
+						dest++;
 					}
-					*dest++ = dest[-recentoff];
-					*dest++ = dest[-recentoff];
+					*dest = dest[-recentoff];
+					dest++;
+					*dest = dest[-recentoff];
+					dest++;
 					lwm = 1;
 				}
 			} else {

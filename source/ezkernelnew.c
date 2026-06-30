@@ -1436,7 +1436,7 @@ static u32 Launcher_GetVirtualFileInfo(const TCHAR *path, const TCHAR *name, u32
 
 u32 Stage_kernel_update(const TCHAR *src_name)
 {
-    TCHAR src_path[MAX_path_len];
+    TCHAR src_path[MAX_path_len + 200];
     const TCHAR *tmp_path = "/ezkernel.tmp";
     const TCHAR *dst_path = "/ezkernel.bin";
     u32 src_size = 0;
@@ -1955,7 +1955,6 @@ void Show_ICON_filename_NOR(u32 show_offset,u32 file_select)
 	int need_show;
 	int line;
 	char msg[20];
-	char title[128];
 	u32 y_offset= 20;	
 	u32 char_num=32;
 	
@@ -1990,8 +1989,6 @@ void Show_ICON_filename_NOR(u32 show_offset,u32 file_select)
 void Refresh_filename_NOR(u32 show_offset,u32 file_select,u32 updown)
 {
 	char msg[20];
-	char title1[128];
-	char title2[128];
 	u16 name_color1;
 	u16 name_color2;
 	u32 xx1;
@@ -3856,7 +3853,6 @@ void IWRAM_CODE make_pogoshell_arguments(TCHAR *cmdname, TCHAR *filename, u32 cm
 {
 	u32 *p, addr;
 	char *ptr, *cmdptr, *fileptr;
-	int i = 0;
 
 	addr = 0x08000000 + cmdsize;
 
@@ -4556,7 +4552,7 @@ static void Launcher_ClearTitleFillClipPhase(int x, int y, int w, int h, u16 bas
 		Launcher_ClearClipStriped(x, y, w, h, base_fill, stripe_fill);
 }
 
-static void Launcher_ClearTitleFillClip(int x, int y, int w, int h, u16 base_fill)
+static void __attribute__((unused)) Launcher_ClearTitleFillClip(int x, int y, int w, int h, u16 base_fill)
 {
 	Launcher_ClearTitleFillClipPhase(x, y, w, h, base_fill, 0);
 }
@@ -4626,7 +4622,7 @@ static void Launcher_DrawPicClipStride(const u16 *src, int src_stride, int x, in
 	}
 }
 
-static void Launcher_DrawPicClip(const u16 *src, int x, int y, int w, int h)
+static void __attribute__((unused)) Launcher_DrawPicClip(const u16 *src, int x, int y, int w, int h)
 {
 	Launcher_DrawPicClipStride(src, w, x, y, w, h);
 }
@@ -4680,7 +4676,7 @@ static void Launcher_DrawThumbBorder(int x, int y, int w, int h)
 	Launcher_ClearClip(x + w, y - 1, 1, h + 2, RGB(0,0,0));
 }
 
-static void Launcher_DrawThumbInBox(const u16 *src, int src_w, int src_h, int box_x, int box_y, int box_w, int box_h)
+static void __attribute__((unused)) Launcher_DrawThumbInBox(const u16 *src, int src_w, int src_h, int box_x, int box_y, int box_w, int box_h)
 {
 	int draw_w;
 	int draw_h;
@@ -4698,7 +4694,7 @@ static void Launcher_DrawThumbInBox(const u16 *src, int src_w, int src_h, int bo
 	Launcher_DrawThumbBorder(draw_x, draw_y, draw_w, draw_h);
 }
 
-static void Launcher_DrawThumbPanel(const u16 *src, int src_w, int src_h, u16 *dst, int box_x, int box_y, int box_w, int box_h)
+static void __attribute__((unused)) Launcher_DrawThumbPanel(const u16 *src, int src_w, int src_h, u16 *dst, int box_x, int box_y, int box_w, int box_h)
 {
 	Launcher_ScaleThumbToBox(src, src_w, src_h, dst, box_w, box_h);
 	Launcher_DrawPicClipStride(dst, box_w, box_x, box_y, box_w, box_h);
@@ -4975,7 +4971,7 @@ static void Launcher_DrawHorizontalSelectedPreview(const u16 *src, int src_w, in
 	Launcher_DrawThumbBorder(draw_x, draw_y, draw_w, draw_h);
 }
 
-static void Launcher_DrawIconCenteredClip(const u16 *icon, int box_x, int box_y, int box_w, int box_h)
+static void __attribute__((unused)) Launcher_DrawIconCenteredClip(const u16 *icon, int box_x, int box_y, int box_w, int box_h)
 {
 	int icon_x = box_x + ((box_w - 16) / 2);
 	int icon_y = box_y + ((box_h - 14) / 2);
@@ -5035,7 +5031,7 @@ static void Launcher_DrawIconCenteredClip2x(const u16 *icon, int box_x, int box_
 	}
 }
 
-static void Launcher_DrawIconCenteredClip3x(const u16 *icon, int box_x, int box_y, int box_w, int box_h)
+static void __attribute__((unused)) Launcher_DrawIconCenteredClip3x(const u16 *icon, int box_x, int box_y, int box_w, int box_h)
 {
 	int icon_x = box_x + ((box_w - 48) / 2);
 	int icon_y = box_y + ((box_h - 42) / 2);
@@ -5142,7 +5138,7 @@ static void Launcher_MakeEllipsisText(const char *src, char *dst, u32 dst_size, 
 	dst[max_chars] = '\0';
 }
 
-static void Launcher_GetVerticalFolderLabelInfo(char *cleaned, int cleaned_size, int *outer_left, int *outer_top, int *outer_w, int *outer_h)
+static void __attribute__((unused)) Launcher_GetVerticalFolderLabelInfo(char *cleaned, int cleaned_size, int *outer_left, int *outer_top, int *outer_w, int *outer_h)
 {
 	const char *label = Launcher_GetCurrentFolderLabel();
 	int len;
@@ -5174,7 +5170,7 @@ static void Launcher_GetVerticalFolderLabelInfo(char *cleaned, int cleaned_size,
 	*outer_h = 16;
 }
 
-static int Launcher_ShouldPreserveVerticalFolderLabel(int *left, int *top, int *w, int *h)
+static int __attribute__((unused)) Launcher_ShouldPreserveVerticalFolderLabel(int *left, int *top, int *w, int *h)
 {
 	(void)left;
 	(void)top;
@@ -5259,7 +5255,7 @@ static void Launcher_PrepareSideIconPanel48x32(const u16 *icon, u16 *dst, const 
 		Launcher_DrawIconToPanel16(icon, dst, 48, 32);
 }
 
-static int Launcher_SplitTitleNarrow(const char *title, char lines[3][32])
+static int __attribute__((unused)) Launcher_SplitTitleNarrow(const char *title, char lines[3][32])
 {
 	int title_len;
 	int pos = 0;
@@ -5678,7 +5674,7 @@ static void Launcher_PreScaleHorzCache(void)
 		memset(launcher_side_preview_right, 0, sizeof(launcher_side_preview_right));
 }
 
-static void Launcher_PreScaleVertPrev(void)
+static void __attribute__((unused)) Launcher_PreScaleVertPrev(void)
 {
 	const u16 *src;
 	src = Launcher_GetPreviewSourceForAbsoluteIndex(&launcher_cache_prev, launcher_cache_prev.absolute_index);
@@ -5691,7 +5687,7 @@ static void Launcher_PreScaleVertPrev(void)
 		memset(launcher_vert_prev_scaled, 0, sizeof(launcher_vert_prev_scaled));
 }
 
-static void Launcher_PreScaleVertNext(void)
+static void __attribute__((unused)) Launcher_PreScaleVertNext(void)
 {
 	const u16 *src;
 	src = Launcher_GetPreviewSourceForAbsoluteIndex(&launcher_cache_next, launcher_cache_next.absolute_index);
@@ -5868,7 +5864,7 @@ static u32 Launcher_ListNavRepeatDelay(void)
 	return 1;
 }
 
-static void Draw_ModernLauncher_SD_State(u32 show_offset, u32 file_select, int x_shift)
+static void __attribute__((unused)) Draw_ModernLauncher_SD_State(u32 show_offset, u32 file_select, int x_shift)
 {
 	LauncherEntryInfo selected;
 	LauncherEntryInfo prev;
@@ -6480,7 +6476,6 @@ u32 Check_file_type(TCHAR *pfilename)
 {
 	u32 res;	
 	TCHAR *ext = strrchr(pfilename, '.');
-	TCHAR *p;
 	
 
 	if (!ext)
@@ -6930,7 +6925,7 @@ static const char *Launcher_BootModeText(void)
     return DSTEXT_BOOT_MENU;
 }
 
-static const char *Launcher_ModeBText(void)
+static __attribute__((unused)) const char *Launcher_ModeBText(void)
 {
     if(gl_ModeB_init == 0x0)
         return DSTEXT_MODE_RUMBLE;
@@ -7176,7 +7171,7 @@ static void Launcher_SettingsDrawPopupEx(const char *title, u32 total, u32 selec
     }
 }
 
-static void Launcher_SettingsDrawPopup(const char *title, u32 total, u32 selected, u32 top, void (*get_line)(u32,char*,u32))
+static void __attribute__((unused)) Launcher_SettingsDrawPopup(const char *title, u32 total, u32 selected, u32 top, void (*get_line)(u32,char*,u32))
 {
     Launcher_SettingsDrawPopupEx(title, total, selected, top, get_line, 50);
 }
@@ -7271,7 +7266,7 @@ static void Launcher_BootModeCycle(int dir)
     }
 }
 
-static void Launcher_ModeBCycle(int dir)
+static void __attribute__((unused)) Launcher_ModeBCycle(int dir)
 {
     if(dir < 0)
         gl_ModeB_init = (gl_ModeB_init == 0) ? 2 : (gl_ModeB_init - 1);
@@ -7334,7 +7329,7 @@ typedef enum
     LED_SETTING_TOTAL
 } LauncherLedSettingItem;
 
-static void Launcher_LedSettingsGetLine(u32 item, char *out, u32 out_size)
+static void __attribute__((unused)) Launcher_LedSettingsGetLine(u32 item, char *out, u32 out_size)
 {
     const char *label = "";
     const char *value = "";
@@ -7354,7 +7349,7 @@ static void Launcher_LedSettingsGetLine(u32 item, char *out, u32 out_size)
     snprintf(out, out_size, "%-11s %s", label, value);
 }
 
-static void Launcher_LedSettingsToggle(u32 item)
+static void __attribute__((unused)) Launcher_LedSettingsToggle(u32 item)
 {
     switch(item)
     {
@@ -7856,7 +7851,7 @@ static void Launcher_TimeGetLine(u32 item, char *out, u32 out_size)
         case 4: snprintf(out, out_size, "Hour        %02u", launcher_time_dt[4]); break;
         case 5: snprintf(out, out_size, "Minute      %02u", launcher_time_dt[5]); break;
         case 6: snprintf(out, out_size, "Second      %02u", launcher_time_dt[6]); break;
-        default: snprintf(out, out_size, ""); break;
+        default: if(out_size) out[0] = '\0'; break;
     }
 }
 
@@ -8157,7 +8152,7 @@ static void Launcher_DrawHelpControls(void)
         y += 13;
     }
 
-    DrawHZText12(DSTEXT_CONTROL_QUICK_ACTION, 0, wrap_x, y, gl_color_text, 1);
+    DrawHZText12((TCHAR*)DSTEXT_CONTROL_QUICK_ACTION, 0, wrap_x, y, gl_color_text, 1);
 }
 
 static void Launcher_ShowHelpBOnly(void)
@@ -8235,7 +8230,10 @@ static void Launcher_StartGetLastTitle(char *out, u32 out_size)
     {
         Launcher_CleanTitle(recent_name, out, out_size);
         if(out[0] == '\0')
-            snprintf(out, out_size, "%s", recent_name);
+        {
+            strncpy(out, recent_name, out_size - 1);
+            out[out_size - 1] = '\0';
+        }
     }
 
     if(out[0] == '\0')
@@ -9457,7 +9455,7 @@ static u32 Launcher_SettingsWindow(void)
     }
 }
 
-static u32 Launcher_Setting_window2(void)
+static u32 __attribute__((unused)) Launcher_Setting_window2(void)
 {
     return Launcher_SettingsWindow();
 }
@@ -9832,7 +9830,6 @@ re_showfile:
 		}
 		launcher_force_full_redraw = 0;
 	}
-  u32 key_L=0;
 	u32 select_tap_pending = 0;
 	u32 select_tap_timer = 0;
 	u32 select_double_handled = 0;
@@ -10184,18 +10181,12 @@ re_showfile:
 			}
 
 			u16 audio_keysdown = keysdown;
-			u16 audio_keysrepeat = 0;
-
 			if(launcher_select_release_cooldown)
 				launcher_select_release_cooldown--;
 
 			if((page_num == SD_list) || (page_num == NOR_list))
 			{
-				if(!gl_show_Thumbnail)
-				{
-					audio_keysrepeat = keysrepeat & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT);
-				}
-				else
+				if(gl_show_Thumbnail)
 				{
 					audio_keysdown &= ~(KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT);
 				}
@@ -10591,10 +10582,6 @@ re_showfile:
 					goto refind_file;
 				}
 			}
-			else if(keys_released & KEY_L)
-			{
-				key_L = 0;
-			}
 			else if(keysdown & KEY_R)
 			{
 				if((page_num == SD_list) && recents_view_active)
@@ -10719,7 +10706,7 @@ re_showfile:
 					//res = f_getcwd(currentpath, sizeof currentpath / sizeof *currentpath);		
 		      if( show_offset+file_select <  folder_total)
 		      {
-						TCHAR nextpath[MAX_path_len];
+						TCHAR nextpath[MAX_path_len + 200];
 						if(strcmp(currentpath,"/") !=0)
 							snprintf(nextpath, sizeof(nextpath), "%s/%s", currentpath, pFolder[show_offset+file_select].filename);
 						else
@@ -10961,7 +10948,6 @@ u8 NOR_list_MENU(u32 show_offset,	u32 file_select)
 	//TCHAR *pfilename;
 
 	u32 key_L=0;
-	u8 error_num;
 
 			
 	//pfilename = pNorFS[show_offset+file_select].filename;

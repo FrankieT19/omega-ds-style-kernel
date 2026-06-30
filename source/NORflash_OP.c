@@ -205,7 +205,6 @@ u8 str_len;
     char msg[128];
     FM_NOR_FS tmpNorFS ;
     char temp[50];
-    u16 readdata;
     u32 add_patch = 0;
     u16 norid = Read_S98NOR_ID();
     if(norid == 0x223D) { //S98
@@ -237,9 +236,8 @@ u8 str_len;
         *((vu16 *)(FlashBase_S98+0x000*2)) = 0x30 ;
         {
             int polling_counter = 0x15000;
-            u32 v1;
             do {
-                v1 = *((vu16 *)(FlashBase_S98+ 0x5C0000));
+                (void)*((vu16 *)(FlashBase_S98+ 0x5C0000));
                 polling_counter--;
             }
             while (polling_counter);
@@ -298,7 +296,6 @@ u32 GetFileListFromNor(void)
     REG_IME = 0 ;
     u32 page=0,count=0;
     u32 StartAddress = FlashBase_S98;
-    FM_NOR_FS tmpNorFS ;
     char temp[50];
     vu16  Value;
     Value = *(vu16 *)(StartAddress + 0xbe);

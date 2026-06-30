@@ -30,7 +30,9 @@ u8 resettemp;
 
 extern FIL gfile;
 // --------------------------------------------------------------------
+#ifndef FlashBase_S71
 #define FlashBase_S71		0x08000000
+#endif
 
 #define NOR_info_offset 0x7A0000
 #define SET_info_offset 0x7B0000
@@ -125,7 +127,6 @@ u32 IWRAM_CODE Write_SD_sectors(u32 address,u16 count, u8* SDbuffer)
     SD_Read_state();
     u16 i;
     u16 blocks;
-    u32 res;
     for(i=0; i<count; i+=4) {
         blocks = (count-i>4)?4:(count-i);
         dmaCopy( SDbuffer+i*512,(void*)0x9E00000, blocks*512);
@@ -137,7 +138,7 @@ u32 IWRAM_CODE Write_SD_sectors(u32 address,u16 count, u8* SDbuffer)
         *(vu16 *)0x9620000 = ((address+i)&0xFFFF0000) >>16;
         *(vu16 *)0x9640000 = 0x8000+blocks;
         *(vu16 *)0x9fc0000 = 0x1500;
-        res = Wait_SD_Response();
+        (void)Wait_SD_Response();
     }
     delay(3000);
     SD_Disable();

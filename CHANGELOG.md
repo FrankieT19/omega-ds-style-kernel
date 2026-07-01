@@ -1,5 +1,12 @@
 # Changelog
 
+## DS Style v7.0
+
+- Added a Hide system files setting for keeping kernel, system, and metadata files out of the root file browser.
+- Added artwork matching for `.sav` files when a matching ROM is present.
+- Added Settings > Load style for installing `.bin` kernels from `SYSTEM/KERNELS`.
+- Kept style installation using the original Omega `ezkernel.bin` filename.
+
 This changelog records the DS Style releases made available for the original EZ-Flash Omega.
 
 ## DS Style v6.9

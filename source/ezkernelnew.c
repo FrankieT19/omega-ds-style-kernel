@@ -9648,6 +9648,9 @@ static void Launcher_ShowHelpTopic(u32 topic)
         "- Boot to chooses Start, SD,",
         "  NOR, Last game, Recents",
         "  or Favourites at startup.",
+        "",
+        "",
+        "",
         "Start screen",
         "- Start screen turns the",
         "  opening screen on or off.",
@@ -9675,8 +9678,6 @@ static void Launcher_ShowHelpTopic(u32 topic)
         "  intro before a game starts.",
         "- Backup saves keeps copies",
         "  of save files in BACKUP.",
-        "",
-        "",
         "Hardware",
         "- In-game RTC enables clock",
         "  support for compatible games."

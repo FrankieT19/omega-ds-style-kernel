@@ -36,6 +36,8 @@ $fallbackDefault = $allThemeSpecs[0]
 $blankSpec = @{ Folder = "blank"; Name = "Blank"; Suffix = "BLANK"; Dark = $false }
 $customColourSpec = @{ Folder = "custom_colour"; Name = "Custom"; Suffix = "CUSTOM"; Dark = $false }
 $customThemeSpec = @{ Folder = "custom_theme"; Name = "Custom"; Suffix = "CUSTOM_THEME"; Dark = $true }
+$allowSeparateCustomColour = $false
+$allowSeparateCustomTheme = $false
 
 function Has-ThemeTopFile($spec) {
     $dir = Join-Path $images $spec.Folder
@@ -250,8 +252,8 @@ function Theme-Entry($spec) {
 
 Convert-SplashImage
 
-$customColourEnabled = Has-RequiredCustomColourFiles
-$customThemeEnabled = Has-RequiredCustomThemeFiles
+$customColourEnabled = $allowSeparateCustomColour -and (Has-RequiredCustomColourFiles)
+$customThemeEnabled = $allowSeparateCustomTheme -and (Has-RequiredCustomThemeFiles)
 $themeSpecsToBuild = @($blankSpec) + $allThemeSpecs
 if ($customColourEnabled) { $themeSpecsToBuild += $customColourSpec }
 if ($customThemeEnabled) { $themeSpecsToBuild += $customThemeSpec }

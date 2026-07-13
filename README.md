@@ -51,6 +51,8 @@ Run this before building if you edit the theme BMP/PNG/JPG assets.
 
 For normal users, the recommended route is **DS Style Customiser**, which creates a private project copy, edits the assets/settings, and builds the kernel without modifying this source tree directly.
 
+The original OMEGA's smaller kernel size limit does not leave room for separate Custom Theme or Custom Colour slots. Edit one of the existing colour slots and its top bar and icons instead.
+
 ## Credits
 
 - Original kernel source by EZ-FLASH

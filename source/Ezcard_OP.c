@@ -527,6 +527,7 @@ void IWRAM_CODE Check_FW_update(u16 Current_FW_ver,u16 Built_in_ver)
     sprintf(msg,"Press (B) to continue.");
     DrawHZText12(msg,0,2,offset_Y+7*line_x, 0x7FFF,1);
 
+    REG_DISPCNT &= (u16)~0x0080;
     while(1) {
         VBlankIntrWait();
         scanKeys();
@@ -535,6 +536,7 @@ void IWRAM_CODE Check_FW_update(u16 Current_FW_ver,u16 Built_in_ver)
             break;
         }
     }
+    REG_DISPCNT |= 0x0080;
 }
 // --------------------------------------------------------------------
 static const u32 crc32tab[] = {

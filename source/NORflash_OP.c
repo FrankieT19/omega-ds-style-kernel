@@ -246,7 +246,7 @@ u8 str_len;
         *((vu16 *)(FlashBase_S98+0x000*2)) = 0x00 ;
         /////////////////
         tmpNorFS.filesize = fileneedsize;
-        tmpNorFS.have_patch = have_patch;
+        tmpNorFS.have_patch = have_patch ? 2 : 0;
         tmpNorFS.have_RTS = gl_rts_on;
         sprintf(tmpNorFS.filename,"%s",filename);
         dmaCopy(&tmpNorFS,&pNorFS[game_total_NOR], sizeof(FM_NOR_FS));

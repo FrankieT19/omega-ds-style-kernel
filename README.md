@@ -7,7 +7,7 @@ DS Style is a custom kernel for the **original EZ-FLASH OMEGA**. It is based on 
 
 ## Current Release
 
-DS Style v8.0. Copy the complete `SYSTEM` folder and the correct kernel file from the release to your SD-card root, then boot while holding **R**. Artwork is included; no separate optional-artwork step is needed. Back up your card first. Existing games, saves and settings remain compatible.
+DS Style v8.1. Copy the complete `SYSTEM` folder and the correct kernel file from the release to your SD-card root, then boot while holding **R**. Artwork is included; no separate optional-artwork step is needed. Back up your card first. Existing games, saves and settings remain compatible.
 
 ## User Guide
 
@@ -19,6 +19,8 @@ Read the complete [DS Style User Guide](https://frankiet19.github.io/omega-de-ds
 - [DS Style Manager](https://frankiet19.github.io/omega-de-ds-style-kernel/manager/) - guided installation, preferences, artwork and styles
 
 ## Features
+
+- Start + Select opens the redesigned in-game add-on menu; hold Select to return to the launcher.
 
 - DS-style launcher interface
 - Multiple accent colours and Light, Dark or clock-based Auto theme
@@ -36,7 +38,7 @@ Read the complete [DS Style User Guide](https://frankiet19.github.io/omega-de-ds
 
 ## Building
 
-Install devkitPro/devkitARM, then run:
+Install devkitPro/devkitARM and Python 3 (available as `python` on PATH), then run:
 
 ```bat
 build.bat
@@ -79,4 +81,4 @@ The original OMEGA's smaller kernel size limit does not leave room for separate 
 
 ## License
 
-This project follows the license terms provided with the original EZ-FLASH kernel source. See `LICENSE`.
+The combined v8.1 kernel is distributed under GPL-3.0-or-later. See [COPYING](COPYING), [LICENSE](LICENSE), and [NOTICE.md](NOTICE.md).

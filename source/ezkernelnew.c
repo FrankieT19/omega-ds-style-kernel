@@ -1579,6 +1579,8 @@ static void UIAudio_PlaySfx(UI_SFX_ID id)
 }
 
 #include "popup_chrome.h"
+#include "return_fade.h"
+#include "return_input.h"
 #include "menu_fade.h"
 #include "launch_screen.h"
 
@@ -5077,7 +5079,7 @@ void CheckLanguage(void)
 //---------------------------------------------------------------------------------
 void CheckSwitch(void)
 {
-	gl_reset_on = Read_SET_info(assress_v_reset);
+	gl_reset_on = 1;
 	gl_rts_on = Read_SET_info(assress_v_rts);
 	gl_sleep_on = Read_SET_info(assress_v_sleep);
 	gl_cheat_on = Read_SET_info(assress_v_cheat);
@@ -9937,7 +9939,6 @@ typedef enum
     SETTINGS_BOOT_MODE,
     SETTINGS_INGAME_RTC,
     SETTINGS_SLEEP_HOTKEY,
-    SETTINGS_ADDON_HOTKEY,
     SETTINGS_FULL_INTRO,
     SETTINGS_BACKUP_SAVES,
     SETTINGS_HELP,
@@ -9984,7 +9985,6 @@ static void Launcher_SettingsGetLine(u32 item, char *out, u32 out_size)
         case SETTINGS_BOOT_MODE: label = DSTEXT_SETTINGS_BOOT_MODE; value = Launcher_BootModeText(); break;
         case SETTINGS_INGAME_RTC: label = DSTEXT_SETTINGS_INGAME_RTC; value = Launcher_OnOffText(gl_ingame_RTC_open_status); break;
         case SETTINGS_SLEEP_HOTKEY: label = DSTEXT_SETTINGS_SLEEP_HOTKEY; value = ">"; break;
-        case SETTINGS_ADDON_HOTKEY: label = DSTEXT_SETTINGS_ADDON_HOTKEY; value = ">"; break;
         case SETTINGS_FULL_INTRO: label = DSTEXT_SETTINGS_ENABLE_BIOS; value = Launcher_OnOffText(gl_toggle_reset); break;
         case SETTINGS_BACKUP_SAVES: label = DSTEXT_SETTINGS_BACKUP_SAVES; value = Launcher_OnOffText(gl_toggle_backup); break;
         case SETTINGS_HELP: label = DSTEXT_SETTINGS_HELP; value = ">"; break;
@@ -10600,8 +10600,7 @@ static void __attribute__((unused)) Launcher_ModeBCycle(int dir)
 
 typedef enum
 {
-    ADDON_SETTING_RESET = 0,
-    ADDON_SETTING_RTS,
+    ADDON_SETTING_RTS = 0,
     ADDON_SETTING_SLEEP,
     ADDON_SETTING_CHEAT,
     ADDON_SETTING_TOTAL
@@ -10614,7 +10613,6 @@ static void Launcher_AddonSettingsGetLine(u32 item, char *out, u32 out_size)
 
     switch(item)
     {
-        case ADDON_SETTING_RESET: label = DSTEXT_ADDON_RESET; value = Launcher_OnOffText(gl_reset_on); break;
         case ADDON_SETTING_RTS: label = DSTEXT_ADDON_RTS; value = Launcher_OnOffText(gl_rts_on); break;
         case ADDON_SETTING_SLEEP: label = DSTEXT_ADDON_SLEEP; value = Launcher_OnOffText(gl_sleep_on); break;
         case ADDON_SETTING_CHEAT: label = DSTEXT_ADDON_CHEAT; value = Launcher_OnOffText(gl_cheat_on); break;
@@ -10628,7 +10626,6 @@ static void Launcher_AddonSettingsToggle(u32 item)
 {
     switch(item)
     {
-        case ADDON_SETTING_RESET: gl_reset_on ^= 1; break;
         case ADDON_SETTING_RTS: gl_rts_on ^= 1; break;
         case ADDON_SETTING_SLEEP: gl_sleep_on ^= 1; break;
         case ADDON_SETTING_CHEAT: gl_cheat_on ^= 1; break;
@@ -11540,9 +11537,6 @@ static void Launcher_SettingsToggle(u32 item, int dir)
         case SETTINGS_SLEEP_HOTKEY:
             Launcher_HotkeyPopup(DSTEXT_SETTINGS_SLEEP_HOTKEY, 1);
             break;
-        case SETTINGS_ADDON_HOTKEY:
-            Launcher_HotkeyPopup(DSTEXT_SETTINGS_ADDON_HOTKEY, 0);
-            break;
         case SETTINGS_FULL_INTRO:
             gl_toggle_reset ^= 1;
             Launcher_SaveSettingsInfo();
@@ -11577,7 +11571,6 @@ static u32 Launcher_SettingsItemNeedsFullRedraw(u32 item)
         case SETTINGS_LOAD_STYLE:
         case SETTINGS_ADDON_SETTINGS:
         case SETTINGS_SLEEP_HOTKEY:
-        case SETTINGS_ADDON_HOTKEY:
             return 1;
         default:
             return 0;
@@ -12014,7 +12007,10 @@ static void Launcher_DrawHelpControls(void)
         DSTEXT_CONTROL_HOLD_START,
         DSTEXT_CONTROL_DOUBLE_SELECT,
         DSTEXT_CONTROL_QUICK_HOTKEY,
-        DSTEXT_CONTROL_QUICK_ACTION
+        DSTEXT_CONTROL_QUICK_ACTION,
+        "In game: GBA Addon / GB / GBC",
+        "Start + Select: Open menu",
+        "Hold Select 3 sec: Exit game"
     };
     Launcher_ShowHelpTextPages(DSTEXT_CONTROLS_TITLE, lines, sizeof(lines) / sizeof(lines[0]));
 }
@@ -12156,15 +12152,17 @@ static void Launcher_ShowHelpTopic(u32 topic)
         "  handling for games.",
         "- Auto save controls save",
         "  prompts when DS Style opens.",
-        "- Addon settings choose Reset,",
-        "  RTS, Sleep and Cheats.",
+        "- Addon settings choose save",
+        "  states, Sleep and Cheats.",
         "- Boot mode chooses Clean,",
         "  Addon or Menu by default.",
         "In-game options",
         "- Sleep hotkey chooses the",
         "  in-game sleep command.",
-        "- Addon hotkey chooses the",
-        "  in-game addon menu command.",
+        "- Start + Select opens the",
+        "  menu (GBA Addon, GB/GBC).",
+        "- Hold Select for 3 seconds",
+        "  to exit to the launcher.",
         "- Enable BIOS shows the GBA",
         "  intro before a game starts.",
         "- Backup saves keeps copies",
@@ -13448,6 +13446,7 @@ static u32 Launcher_StartWindow(void)
         {
             Launcher_ResetStartTitleScroll();
             Launcher_DrawStartWindow(selected);
+            Launcher_RevealReturn();
             dirty = 0;
         }
         else if(!motion->active)
@@ -13456,7 +13455,9 @@ static u32 Launcher_StartWindow(void)
 
         scanKeys();
         {
-            u16 keysdown = keysDown();
+            u16 return_mask = Launcher_ReturnInputMask(keysHeld());
+            u16 keysdown = keysDown() & ~return_mask;
+            if(return_mask) (void)keysUp();
 
             if(keysdown & KEY_DOWN)
             {
@@ -13611,7 +13612,7 @@ static const u32 launcher_settings_view_items[] = {
     SETTINGS_LIST_FOLDERS, SETTINGS_THUMBNAILS, SETTINGS_ART_POSITION, SETTINGS_ART_BORDER,
     SETTINGS_ROUNDED_CORNERS, SETTINGS_ANIMATIONS, SETTINGS_SIDE_SIZE };
 static u32 launcher_settings_visible_view[7];
-static const u32 launcher_settings_games_items[] = { SETTINGS_BOOT_ENGINE, SETTINGS_AUTO_SAVE, SETTINGS_AUTO_START, SETTINGS_ADDON_SETTINGS, SETTINGS_BOOT_MODE, SETTINGS_SLEEP_HOTKEY, SETTINGS_ADDON_HOTKEY, SETTINGS_FULL_INTRO, SETTINGS_BACKUP_SAVES };
+static const u32 launcher_settings_games_items[] = { SETTINGS_BOOT_ENGINE, SETTINGS_AUTO_SAVE, SETTINGS_AUTO_START, SETTINGS_ADDON_SETTINGS, SETTINGS_BOOT_MODE, SETTINGS_SLEEP_HOTKEY, SETTINGS_FULL_INTRO, SETTINGS_BACKUP_SAVES };
 static const u32 launcher_settings_hardware_items[] = { SETTINGS_INGAME_RTC };
 
 static const u32 *launcher_settings_active_items = 0;
@@ -14072,6 +14073,8 @@ static u32 Get_path_depth(const TCHAR *path)
 //---------------------------------------------------------------------------------
 #include "system_browser.h"
 
+#include "game_return.h"
+
 int main(void) {
 
 	irqInit();
@@ -14102,12 +14105,15 @@ int main(void) {
 
 	gl_currentpage = 0x8002 ;//kernel mode
 
-	SetMode (MODE_3 | BG2_ENABLE | 0x0080);
-
 	SD_Disable();
 	Set_RTC_status(1);
 
-	//check FW
+	DSStyle_ReadReturn();
+	if(ds_return_pending) Launcher_HoldReturn();
+	else SetMode(MODE_3 | BG2_ENABLE | 0x0080);
+
+	//check FW only on a cold start
+	if(!ds_return_pending)
 	{
 		u16 Built_in_ver = 9;
 		u16 Current_FW_ver = Read_FPGA_ver();
@@ -14116,13 +14122,18 @@ int main(void) {
 	}
 
 
-	Launcher_DrawPackedSplash();
 	UIAudio_Init();
-	UIAudio_PlayStartup();
+	if(!ds_return_pending)
+	{
+		Launcher_DrawPackedSplash();
+		UIAudio_PlayStartup();
+	}
 	scanKeys();
 	startup_keys_held = keysHeld();
+	launcher_return_select_held = ds_return_pending && (startup_keys_held & KEY_SELECT);
 	startup_quicklaunch_pending = 0;
-	Launcher_RevealSplash();
+	if(ds_return_pending) launcher_splash_fade_pending = 0;
+	else Launcher_RevealSplash();
 	CheckLanguage();
 	CheckSwitch();
 	Launcher_InitThumbCache();
@@ -14132,6 +14143,7 @@ int main(void) {
 	{
 		DrawHZText12(gl_init_error,0,2,20, gl_color_cheat_black,1);
 		DrawHZText12(gl_power_off,0,2,33, gl_color_cheat_black,1);
+		Launcher_RevealReturn();
 		while(1);
 	}
 	else
@@ -14161,7 +14173,7 @@ int main(void) {
 	Launcher_LoadFavourites();
 	Read_last_launch_mode();
 	Launcher_SaveMigratedSettingsIfNeeded();
-	startup_quicklaunch_pending = (startup_keys_held & Launcher_AutoStartKeyMask()) ? 1 : 0;
+	startup_quicklaunch_pending = !ds_return_pending && (startup_keys_held & Launcher_AutoStartKeyMask());
 
 	Check_save_flag();
 
@@ -14176,7 +14188,7 @@ int main(void) {
 	gl_nor_file_select_saved = 0;
 
 	res = f_getcwd(currentpath, sizeof currentpath / sizeof *currentpath);
-	if((gl_resume_last_on || startup_quicklaunch_pending) && Read_last_played_entry(currentpath, sizeof currentpath, current_filename, sizeof current_filename))
+	if(!ds_return_pending && (gl_resume_last_on || startup_quicklaunch_pending) && Read_last_played_entry(currentpath, sizeof currentpath, current_filename, sizeof current_filename))
 	{
 		folder_select = Get_path_depth(currentpath);
 		f_chdir(currentpath);
@@ -14197,6 +14209,14 @@ int main(void) {
 		memset(pNorFS,00,sizeof(FM_NOR_FS)*MAX_NOR);
 		Save_NOR_info((u16*)pNorFS,sizeof(FM_NOR_FS)*MAX_NOR);
 	}
+
+    if(ds_return_pending)
+    {
+        page_num = DSStyle_RestoreReturn();
+        start_screen_pending = 0;
+        launcher_force_full_redraw = 1;
+        if(!launcher_return_fade_pending) Launcher_HoldReturn();
+    }
 
 refind_file:
 	/* Directory records live in the reserved tail of PSRAM page zero. */
@@ -14219,6 +14239,20 @@ refind_file:
 			game_total_SD = recents_view_favourites ? Build_favourites_virtual_list() : Build_recent_virtual_list();
 			launcher_sd_launchable_file_count = game_total_SD;
 			game_folder_total = game_total_SD;
+            if(ds_return_pending && ds_return.game[0])
+            {
+                u32 i;
+                for(i = 0; i < game_total_SD; i++)
+                    if(!strcmp(ds_return.game, p_recently_play[i]))
+                    {
+                        if(i != recents_saved_show_offset + recents_saved_file_select)
+                        {
+                            recents_saved_file_select = i < 10 ? i : 9;
+                            recents_saved_show_offset = i - recents_saved_file_select;
+                        }
+                        break;
+                    }
+            }
 		}
 		else
 		{
@@ -14339,6 +14373,7 @@ refind_file:
 			}
 		}
   }
+	ds_return_pending = 0;
 	if(startup_quicklaunch_pending && (page_num == SD_list) && game_folder_total && (show_offset + file_select >= folder_total))
 	{
 		u16 old_boot_mode_pref = gl_boot_mode_pref;
@@ -14346,6 +14381,7 @@ refind_file:
 		startup_quicklaunch_pending = 0;
 		Launcher_EndSplash();
 		UIAudio_StopForSharedBufferUse();
+		DSStyle_CaptureReturn(page_num, show_offset, file_select);
 		res = SD_list_MENU(show_offset, file_select, 0xBB);
 		gl_boot_mode_pref = old_boot_mode_pref;
 		if(res)
@@ -14365,6 +14401,7 @@ refind_file:
 		launcher_last_played_launch_pending = 0;
 		UIAudio_StopForSharedBufferUse();
 		Launcher_FlushInputForModal();
+		DSStyle_CaptureReturn(page_num, show_offset, file_select);
 		res = SD_list_MENU(show_offset, file_select, 0xBB);
 		if(res)
 		{
@@ -14621,6 +14658,7 @@ re_showfile:
 							{
 								UIAudio_StopForSharedBufferUse();
 								Launcher_FlushInputForModal();
+								DSStyle_CaptureReturn(START_win, show_offset, file_select);
 								menu_res = SD_list_MENU(0, 0, 0);
 
 								/* SD_list_MENU temporarily switches currentpath/current_filename to the
@@ -14876,6 +14914,7 @@ re_showfile:
 			if(updata)
 			{
 				ShowTime(page_num,page_mode);
+				Launcher_RevealReturn();
 			}
 
 			if(launcher_reopen_sd_menu_after_redraw && (page_num == SD_list))
@@ -14884,6 +14923,7 @@ re_showfile:
 				launcher_reopen_from_cheat_screen = 0;
 				{
 					u32 selected_index = Launcher_ResolveListEntryIndex(show_offset + file_select);
+					DSStyle_CaptureReturn(page_num, show_offset, file_select);
 					res = SD_list_MENU(selected_index, 0, recents_view_active ? selected_index : play_re);
 				}
 				if(res)
@@ -14911,6 +14951,11 @@ re_showfile:
 			u16 keys_released = keysUp();
 			u16 keysheld = keysHeld();
 			u16 keysrepeat = keysDownRepeat();
+            u16 return_mask = Launcher_ReturnInputMask(keysheld);
+            keysdown &= ~return_mask;
+            keys_released &= ~return_mask;
+            keysheld &= ~return_mask;
+            keysrepeat &= ~return_mask;
 			u16 buffered_list_art_input = 0;
 			u16 launcher_nav_repeat_mask = 0;
 			u16 launcher_horz_step_forward = (LAUNCHER_HORZ_NAV_MODE == 1) ? KEY_DOWN : KEY_RIGHT;
@@ -15744,6 +15789,7 @@ re_showfile:
 			goto refind_file;
 			}
 		else{   //SD_list file
+			DSStyle_CaptureReturn(page_num, show_offset, file_select);
 			res = SD_list_MENU(selected_index, 0, recents_view_active ? selected_index : play_re);
 						if(res){
 							launcher_force_full_redraw = 1;
@@ -15766,6 +15812,7 @@ re_showfile:
 				else{   //NOR gba file
 					if(game_total_NOR){
 						u32 selected_index = Launcher_ResolveListEntryIndex(show_offset + file_select);
+						DSStyle_CaptureReturn(page_num, show_offset, file_select);
 						res = NOR_list_MENU(selected_index, 0);
 						if(res){
 							launcher_force_full_redraw = 1;
@@ -15900,7 +15947,7 @@ void Boot_NOR_game(u32 show_offset,	u32 file_select,u32 key_L)
 	if(pNorFS[show_offset+file_select].have_patch && pNorFS[show_offset+file_select].have_RTS)
 	{
 		ShowbootProgress(gl_check_RTS);
-		u32 size = Check_RTS(pfilename);
+		u32 size = Check_RTS(pfilename, pNorFS[show_offset+file_select].have_patch == 2);
 		if(size ==0)
 		{
 			error_num = 6;
@@ -15917,6 +15964,8 @@ void Boot_NOR_game(u32 show_offset,	u32 file_select,u32 key_L)
 		reset_choice = !gl_toggle_reset;
 	else
 		reset_choice = gl_toggle_reset;
+	if(pNorFS[show_offset+file_select].have_patch == 2) DSStyle_ArmReturn(0, pfilename);
+	else Slot_ArmReturn("", 3, 0);
 	Launcher_FinishLaunch();
 	SetRompageWithHardReset(pNorFS[show_offset+file_select].rompage,reset_choice);
 	while(1);
@@ -16503,6 +16552,9 @@ load_file:
 		Send_FATbuffer(FAT_table_buffer,1);
 
 		res=LoadEMU2PSRAM(pfilename,is_EMU);
+        if(res != 0) { Show_error_num(1); return 0; }
+        if(is_EMU == 1 || is_EMU == 2) DSStyle_ArmReturn(is_EMU == 1 ? 2 : 1, pfilename);
+        else Slot_ArmReturn("", 3, 0);
 			int bootmode = ((is_EMU > 3) && (is_EMU < 9)) ?
 				((is_EMU == 6) ? 2
 					: (is_EMU == 7) ? 4
@@ -16537,6 +16589,7 @@ load_file:
 
 				Send_FATbuffer(FAT_table_buffer,0);
 				GBApatch_Cleanrom(PSRAMBase_S98,gamefilesize);
+                Slot_ArmReturn("", 3, 0);
 				//wait_btn();
 			if(key_L)
 				reset_choice = !gl_toggle_reset;
@@ -16547,7 +16600,7 @@ load_file:
 			break;
 	case 1://PSRAM BOOT WITH ADDON
 		ShowbootProgress(gl_loading_game);
-		gl_reset_on = Read_SET_info(assress_v_reset);
+		gl_reset_on = 1;
 				gl_rts_on 	= Read_SET_info(assress_v_rts);
 				gl_sleep_on = Read_SET_info(assress_v_sleep);
 				gl_cheat_on = Read_SET_info(assress_v_cheat);
@@ -16556,7 +16609,7 @@ load_file:
 					if(gl_rts_on==1)
 					{
 						ShowbootProgress(gl_check_RTS);
-						u32 size = Check_RTS(pfilename);
+						u32 size = Check_RTS(pfilename, 1);
 						if(size ==0){
 							error_num = 6;
 							Show_error_num(error_num);
@@ -16604,6 +16657,7 @@ load_file:
 					}
 			Patch_SpecialROM_sleepmode();//
 			GBApatch_PSRAM(PSRAMBase_S98,gamefilesize);
+            DSStyle_ArmReturn(0, pfilename);
 				}
 				else{//no select switch ,CLEAN
 					Send_FATbuffer(FAT_table_buffer,0);//Loading rom
@@ -16640,7 +16694,7 @@ load_file:
 		break;
 	case 3://WRITE TO NOR ADDON
 		UIAudio_StopForSharedBufferUse();
-		gl_reset_on = Read_SET_info(assress_v_reset);
+		gl_reset_on = 1;
 				gl_rts_on = Read_SET_info(assress_v_rts);
 				gl_sleep_on = Read_SET_info(assress_v_sleep);
 				gl_cheat_on = Read_SET_info(assress_v_cheat);

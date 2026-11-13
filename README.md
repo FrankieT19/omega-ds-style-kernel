@@ -7,7 +7,7 @@ DS Style is a custom kernel for the **original EZ-FLASH OMEGA**. It is based on 
 
 ## Current Release
 
-DS Style v8.1. Copy the contents of the download's `SD Card` folder to the root of your microSD card, then boot while holding **R**. Artwork is included; no separate optional-artwork step is needed. Back up your card first. Existing games, saves and settings remain compatible.
+DS Style v8.2. Copy the contents of the download's `SD Card` folder to the root of your microSD card, then boot while holding **R**. Artwork is included; no separate optional-artwork step is needed. Back up your card first. Existing games, saves and settings remain compatible.
 
 ## User Guide
 
@@ -20,7 +20,7 @@ Read the complete [DS Style User Guide](https://frankiet19.github.io/omega-de-ds
 
 ## Features
 
-- Start + Select opens the redesigned in-game add-on menu; hold Select to return to the launcher.
+- Rebind the in-game menu and exit shortcuts in Settings > Games > Addon settings.
 
 - DS-style launcher interface
 - Multiple accent colours and Light, Dark or clock-based Auto theme
@@ -79,7 +79,7 @@ The original OMEGA's smaller kernel size limit does not leave room for separate 
 - Case-sensitive `HZK12.h` include fix by Kekun
 - FatFs by ChaN, as used by the upstream kernel
 
-The kernel uses the included GB/GBC emulator header. The [emulator source and build script](https://github.com/FrankieT19/omega-de-ds-style-kernel/releases/download/v8.1/DS-Style-v8.1-GB-GBC-Emulator-Source.zip) are available separately.
+The kernel uses the included GB/GBC emulator header. The [emulator source and build script](https://github.com/FrankieT19/omega-de-ds-style-kernel/releases/download/v8.2/DS-Style-v8.2-GB-GBC-Emulator-Source.zip) are available separately.
 
 ## License
 
